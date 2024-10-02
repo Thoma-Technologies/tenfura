@@ -1,213 +1,225 @@
-<div align="center">
 
-# **Bittensor Subnet Template** <!-- omit in toc -->
-[![Discord Chat](https://img.shields.io/discord/308323056592486420.svg)](https://discord.gg/bittensor)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
+# Bittensor Subnet Template
 
----
+This repository provides a minimal template for setting up a simple Bittensor subnet with a miner and a validator. The miner and validator communicate using a custom protocol defined in `protocol.py`. This template serves as a starting point for developers interested in building on the Bittensor network.
 
-## The Incentivized Internet <!-- omit in toc -->
+## Table of Contents
 
-[Discord](https://discord.gg/bittensor) • [Network](https://taostats.io/) • [Research](https://bittensor.com/whitepaper)
-</div>
-
----
-- [Quickstarter template](#quickstarter-template)
-- [Introduction](#introduction)
-  - [Example](#example)
-- [Installation](#installation)
-  - [Before you proceed](#before-you-proceed)
-  - [Install](#install)
-- [Writing your own incentive mechanism](#writing-your-own-incentive-mechanism)
-- [Writing your own subnet API](#writing-your-own-subnet-api)
-- [Subnet Links](#subnet-links)
+- [Overview](#overview)
+- [Project Structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Setup Instructions](#setup-instructions)
+  - [1. Clone the Repository](#1-clone-the-repository)
+  - [2. Install Dependencies](#2-install-dependencies)
+  - [3. Create Wallets](#3-create-wallets)
+  - [4. Register Wallets](#4-register-wallets)
+- [Running the Miner and Validator](#running-the-miner-and-validator)
+  - [Running the Miner](#running-the-miner)
+  - [Running the Validator](#running-the-validator)
+- [Monitoring and Logging](#monitoring-and-logging)
+- [Customization](#customization)
+- [Notes and Considerations](#notes-and-considerations)
 - [License](#license)
 
 ---
-## Quickstarter template
 
-This template contains all the required installation instructions, scripts, and files and functions for:
-- Building Bittensor subnets.
-- Creating custom incentive mechanisms and running these mechanisms on the subnets. 
+## Overview
 
-In order to simplify the building of subnets, this template abstracts away the complexity of the underlying blockchain and other boilerplate code. While the default behavior of the template is sufficient for a simple subnet, you should customize the template in order to meet your specific requirements.
----
+This template demonstrates how to:
 
-## Introduction
+- Set up a basic miner that responds to queries from validators.
+- Implement a validator that sends queries to miners and adjusts their scores based on responses.
+- Use a custom protocol for communication between the miner and validator.
+- Update weights on the Bittensor blockchain based on miner performance.
 
-**IMPORTANT**: If you are new to Bittensor subnets, read this section before proceeding to [Installation](#installation) section. 
+By following this guide, you'll have a functional miner and validator interacting on a Bittensor subnet.
 
-The Bittensor blockchain hosts multiple self-contained incentive mechanisms called **subnets**. Subnets are playing fields in which:
-- Subnet miners who produce value, and
-- Subnet validators who produce consensus
-
-determine together the proper distribution of TAO for the purpose of incentivizing the creation of value, i.e., generating digital commodities, such as intelligence or data. 
-
-Each subnet consists of:
-- Subnet miners and subnet validators.
-- A protocol using which the subnet miners and subnet validators interact with one another. This protocol is part of the incentive mechanism.
-- The Bittensor API using which the subnet miners and subnet validators interact with Bittensor's onchain consensus engine [Yuma Consensus](https://bittensor.com/documentation/validating/yuma-consensus). The Yuma Consensus is designed to drive these actors: subnet validators and subnet miners, into agreement on who is creating value and what that value is worth. 
-
-This starter template is split into three primary files. To write your own incentive mechanism, you should edit these files. These files are:
-1. `template/protocol.py`: Contains the definition of the protocol used by subnet miners and subnet validators.
-2. `neurons/miner.py`: Script that defines the subnet miner's behavior, i.e., how the subnet miner responds to requests from subnet validators.
-3. `neurons/validator.py`: This script defines the subnet validator's behavior, i.e., how the subnet validator requests information from the subnet miners and determines the scores.
-
-### Example
-
-The Bittensor Subnet 1 for Text Prompting is built using this template. See [prompting](https://github.com/macrocosm-os/prompting) for how to configure the files and how to add monitoring and telemetry and support multiple miner types. Also see this Subnet 1 in action on [Taostats](https://taostats.io/subnets/netuid-1/) explorer.
-
----
-
-## Installation
-
-### Before you proceed
-Before you proceed with the installation of the subnet, note the following: 
-
-- Use these instructions to run your subnet locally for your development and testing, or on Bittensor testnet or on Bittensor mainnet. 
-- **IMPORTANT**: We **strongly recommend** that you first run your subnet locally and complete your development and testing before running the subnet on Bittensor testnet. Furthermore, make sure that you next run your subnet on Bittensor testnet before running it on the Bittensor mainnet.
-- You can run your subnet either as a subnet owner, or as a subnet validator or as a subnet miner. 
-- **IMPORTANT:** Make sure you are aware of the minimum compute requirements for your subnet. See the [Minimum compute YAML configuration](./min_compute.yml).
-- Note that installation instructions differ based on your situation: For example, installing for local development and testing will require a few additional steps compared to installing for testnet. Similarly, installation instructions differ for a subnet owner vs a validator or a miner. 
-
-### Install
-
-- **Running locally**: Follow the step-by-step instructions described in this section: [Running Subnet Locally](./docs/running_on_staging.md).
-- **Running on Bittensor testnet**: Follow the step-by-step instructions described in this section: [Running on the Test Network](./docs/running_on_testnet.md).
-- **Running on Bittensor mainnet**: Follow the step-by-step instructions described in this section: [Running on the Main Network](./docs/running_on_mainnet.md).
-
----
-
-## Writing your own incentive mechanism
-
-As described in [Quickstarter template](#quickstarter-template) section above, when you are ready to write your own incentive mechanism, update this template repository by editing the following files. The code in these files contains detailed documentation on how to update the template. Read the documentation in each of the files to understand how to update the template. There are multiple **TODO**s in each of the files identifying sections you should update. These files are:
-- `template/protocol.py`: Contains the definition of the wire-protocol used by miners and validators.
-- `neurons/miner.py`: Script that defines the miner's behavior, i.e., how the miner responds to requests from validators.
-- `neurons/validator.py`: This script defines the validator's behavior, i.e., how the validator requests information from the miners and determines the scores.
-- `template/forward.py`: Contains the definition of the validator's forward pass.
-- `template/reward.py`: Contains the definition of how validators reward miner responses.
-
-In addition to the above files, you should also update the following files:
-- `README.md`: This file contains the documentation for your project. Update this file to reflect your project's documentation.
-- `CONTRIBUTING.md`: This file contains the instructions for contributing to your project. Update this file to reflect your project's contribution guidelines.
-- `template/__init__.py`: This file contains the version of your project.
-- `setup.py`: This file contains the metadata about your project. Update this file to reflect your project's metadata.
-- `docs/`: This directory contains the documentation for your project. Update this directory to reflect your project's documentation.
-
-__Note__
-The `template` directory should also be renamed to your project name.
----
-
-# Writing your own subnet API
-To leverage the abstract `SubnetsAPI` in Bittensor, you can implement a standardized interface. This interface is used to interact with the Bittensor network and can be used by a client to interact with the subnet through its exposed axons.
-
-What does Bittensor communication entail? Typically two processes, (1) preparing data for transit (creating and filling `synapse`s) and (2), processing the responses received from the `axon`(s).
-
-This protocol uses a handler registry system to associate bespoke interfaces for subnets by implementing two simple abstract functions:
-- `prepare_synapse`
-- `process_responses`
-
-These can be implemented as extensions of the generic `SubnetsAPI` interface.  E.g.:
-
-
-This is abstract, generic, and takes(`*args`, `**kwargs`) for flexibility. See the extremely simple base class:
-```python
-class SubnetsAPI(ABC):
-    def __init__(self, wallet: "bt.wallet"):
-        self.wallet = wallet
-        self.dendrite = bt.dendrite(wallet=wallet)
-
-    async def __call__(self, *args, **kwargs):
-        return await self.query_api(*args, **kwargs)
-
-    @abstractmethod
-    def prepare_synapse(self, *args, **kwargs) -> Any:
-        """
-        Prepare the synapse-specific payload.
-        """
-        ...
-
-    @abstractmethod
-    def process_responses(self, responses: List[Union["bt.Synapse", Any]]) -> Any:
-        """
-        Process the responses from the network.
-        """
-        ...
+## Project Structure
 
 ```
-
-
-Here is a toy example:
-
-```python
-from bittensor.subnets import SubnetsAPI
-from MySubnet import MySynapse
-
-class MySynapseAPI(SubnetsAPI):
-    def __init__(self, wallet: "bt.wallet"):
-        super().__init__(wallet)
-        self.netuid = 99
-
-    def prepare_synapse(self, prompt: str) -> MySynapse:
-        # Do any preparatory work to fill the synapse
-        data = do_prompt_injection(prompt)
-
-        # Fill the synapse for transit
-        synapse = StoreUser(
-            messages=[data],
-        )
-        # Send it along
-        return synapse
-
-    def process_responses(self, responses: List[Union["bt.Synapse", Any]]) -> str:
-        # Look through the responses for information required by your application
-        for response in responses:
-            if response.dendrite.status_code != 200:
-                continue
-            # potentially apply post processing
-            result_data = postprocess_data_from_response(response)
-        # return data to the client
-        return result_data
+bittensor_subnet/
+├── miner.py          # Miner node script
+├── validator.py      # Validator node script
+└── protocol.py       # Custom protocol definition
 ```
 
-You can use a subnet API to the registry by doing the following:
-1. Download and install the specific repo you want
-1. Import the appropriate API handler from bespoke subnets
-1. Make the query given the subnet specific API
+- **miner.py**: Implements a miner that listens for incoming requests and responds according to the protocol.
+- **validator.py**: Implements a validator that sends requests to miners and updates their scores.
+- **protocol.py**: Defines the custom protocol used for communication between the miner and validator.
 
+## Prerequisites
 
+Before you begin, ensure you have the following installed:
 
-# Subnet Links
-In order to see real-world examples of subnets in-action, see the `subnet_links.py` document or access them from inside the `template` package by:
-```python
-import template
-template.SUBNET_LINKS
-[{'name': 'sn0', 'url': ''},
- {'name': 'sn1', 'url': 'https://github.com/opentensor/prompting/'},
- {'name': 'sn2', 'url': 'https://github.com/bittranslateio/bittranslate/'},
- {'name': 'sn3', 'url': 'https://github.com/gitphantomman/scraping_subnet/'},
- {'name': 'sn4', 'url': 'https://github.com/manifold-inc/targon/'},
-...
-]
+- Python 3.10 or higher
+- [Git](https://git-scm.com/)
+- [Bittensor SDK](https://github.com/opentensor/bittensor)
+
+## Setup Instructions
+
+### 1. Clone the Repository
+
+Clone this repository to your local machine:
+
+```bash
+git clone https://github.com/yourusername/bittensor_subnet.git
+cd bittensor_subnet
 ```
+
+### 2. Install Dependencies
+
+Install the required Python packages:
+
+```bash
+pip install bittensor
+```
+
+> **Note**: It's recommended to use a virtual environment to manage dependencies.
+
+### 3. Create Wallets
+
+You'll need to create wallets for both the miner and validator.
+
+#### Using `btcli`
+
+The `btcli` tool is used to manage wallets and keys.
+
+1. **Create a Coldkey** (shared between miner and validator):
+
+   ```bash
+   btcli w new_coldkey --wallet.name mywallet
+   ```
+
+2. **Create Hotkeys**:
+
+   - **Miner Hotkey**:
+
+     ```bash
+     btcli w new_hotkey --wallet.name mywallet --wallet.hotkey miner_hotkey
+     ```
+
+   - **Validator Hotkey**:
+
+     ```bash
+     btcli w new_hotkey --wallet.name mywallet --wallet.hotkey validator_hotkey
+     ```
+
+### 4. Register Wallets
+
+Register both the miner and validator on the Bittensor network.
+
+- **Register the Miner**:
+
+  ```bash
+  btcli s register --wallet.name mywallet --wallet.hotkey miner_hotkey --subtensor.network finney
+  ```
+
+- **Register the Validator**:
+
+  ```bash
+  btcli s register --wallet.name mywallet --wallet.hotkey validator_hotkey --subtensor.network finney
+  ```
+
+> **Note**: Replace `finney` with the name of the network you are connecting to if different.
+
+---
+
+## Running the Miner and Validator
+
+### Running the Miner
+
+In one terminal window, navigate to the project directory and run:
+
+```bash
+python miner.py --wallet.name mywallet --wallet.hotkey miner_hotkey --subtensor.network finney --axon.port 8901
+```
+
+**Arguments**:
+
+- `--wallet.name`: The name of the wallet.
+- `--wallet.hotkey`: The hotkey name for the miner.
+- `--subtensor.network`: The Bittensor network to connect to.
+
+### Running the Validator
+
+In another terminal window, navigate to the project directory and run:
+
+```bash
+python validator.py --wallet.name mywallet --wallet.hotkey validator_hotkey --subtensor.network finney
+```
+
+**Arguments**:
+
+- `--wallet.name`: The name of the wallet.
+- `--wallet.hotkey`: The hotkey name for the validator.
+- `--subtensor.network`: The Bittensor network to connect to.
+
+---
+
+## Monitoring and Logging
+
+Both the miner and validator will output logs to the console and save logs to files in the following directory structure:
+
+```
+~/.bittensor/wallets/<wallet.name>/<wallet.hotkey>/netuid<netuid>/<miner or validator>/
+```
+
+- **Miner Logs**: Located in the `miner` directory.
+- **Validator Logs**: Located in the `validator` directory.
+
+You can monitor these logs to observe the interactions and performance metrics.
+
+---
+
+## Customization
+
+### Modifying the Protocol
+
+The communication protocol is defined in `protocol.py`. You can modify or extend the `Dummy` class to implement more complex interactions.
+
+Example:
+
+```python
+class CustomProtocol(bt.Synapse):
+    # Define your custom protocol attributes and methods
+    ...
+```
+
+Update `miner.py` and `validator.py` to use your custom protocol.
+
+### Adjusting Scoring Logic
+
+In `validator.py`, the validator adjusts miner scores based on their responses. You can modify the scoring logic in the main loop to suit your needs.
+
+Example:
+
+```python
+# Custom scoring logic
+if resp_i == expected_value:
+    score = 1
+else:
+    score = 0
+```
+
+### Changing Network Parameters
+
+You can adjust network parameters like `netuid`, timeouts, and other settings via command-line arguments or by modifying the code.
+
+---
+
+## Notes and Considerations
+
+- **Security**: This template is for educational purposes. In a production environment, ensure robust security measures are in place.
+- **Error Handling**: The provided code includes basic error handling. Enhance it to handle edge cases and exceptions gracefully.
+- **Network Compatibility**: Ensure that the `netuid` and `subtensor.network` values match the subnet you intend to connect to.
+- **Bittensor Updates**: Bittensor is an evolving project. Keep your SDK updated and adjust the code as necessary to accommodate changes.
+
+---
 
 ## License
-This repository is licensed under the MIT License.
-```text
-# The MIT License (MIT)
-# Copyright © 2024 Opentensor Foundation
 
-# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-# documentation files (the “Software”), to deal in the Software without restriction, including without limitation
-# the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
-# and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-# The above copyright notice and this permission notice shall be included in all copies or substantial portions of
-# the Software.
+---
 
-# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-# THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-# DEALINGS IN THE SOFTWARE.
-```
+Feel free to contribute, raise issues, or suggest improvements to this template. Happy mining and validating on the Bittensor network!
