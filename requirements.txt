@@ -1,1 +1,2 @@
-bittensor>=8.0.0
+bittensor>=8
+torch>=2

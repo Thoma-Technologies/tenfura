@@ -1,12 +1,17 @@
+import asyncio
 import os
 import random
 import argparse
 import traceback
 import bittensor as bt
-
-from protocol import Dummy
 from substrateinterface import SubstrateInterface
-
+from protocol import BlockchainRequest
+from fastapi import FastAPI, Request
+from fastapi.responses import Response
+import uvicorn
+from utils.uids import get_random_uids
+from collections import defaultdict
+import time
 
 class Validator:
     def __init__(self):
@@ -22,6 +27,14 @@ class Validator:
         self.moving_avg_scores = [1.0] * len(self.metagraph.S)
         self.alpha = 0.1
         self.node = SubstrateInterface(url=self.config.subtensor.chain_endpoint)
+        self.app = FastAPI()
+        self.setup_routes()
+        self.miner_responses = defaultdict(lambda: {
+            "last_request_time": 0,
+            "total_requests": 0,
+            "total_responses": 0
+        })
+        self.query_miners_count = 10  # Number of miners to query for each request
 
     def get_config(self):
         # Set up the configuration parser.
@@ -92,6 +105,42 @@ class Validator:
         self.scores = [1.0] * len(self.metagraph.S)
         bt.logging.info(f"Weights: {self.scores}")
 
+    def setup_routes(self):
+        @self.app.post("/{chain_id}")
+        async def handle_request(chain_id: str, request: Request):
+            payload = await request.body()
+            synapse = BlockchainRequest(
+                chain_id=chain_id,
+                payload=payload.decode()
+            )
+
+            # Broadcast the query to multiple miners on the network.
+            miner_uids = get_random_uids(self.metagraph, self.query_miners_count, 100, exclude=[self.my_uid])
+            axons = [self.metagraph.axons[uid] for uid in miner_uids]
+            responses = self.dendrite.query(
+                axons=axons,
+                synapse=synapse,
+                deserialize=True,
+                timeout=12
+            )
+
+            current_time = time.time()
+            for idx, uid in enumerate(miner_uids):
+                self.miner_responses[uid]["last_request_time"] = current_time
+                self.miner_responses[uid]["total_requests"] += 1
+                response = responses[idx]
+                if response is not None:
+                    self.miner_responses[uid]["total_responses"] += 1
+
+            if responses and any(r is not None for r in responses):
+                valid_response = next(r for r in responses if r is not None)
+                if valid_response.error:
+                    return Response(content=valid_response.error, status_code=500)
+                else:
+                    return Response(content=valid_response.response)
+            else:
+                return Response(content="Internal error", status_code=500)
+
     def node_query(self, module, method, params):
         try:
             result = self.node.query(module, method, params).value
@@ -103,31 +152,19 @@ class Validator:
         
         return result
 
-    def run(self):
+    async def run(self):
         # The Main Validation Loop.
         bt.logging.info("Starting validator loop.")
         while True:
             try:
-                # Create a synapse with the current step value.
-                synapse = Dummy(dummy_input=random.randint(0, 100))
-
-                # Broadcast a query to all miners on the network.
-                responses = self.dendrite.query(
-                    axons=self.metagraph.axons,
-                    synapse=synapse,
-                    timeout=12
-                )
-                bt.logging.info(f"sending input {synapse.dummy_input}")
-                if responses:
-                    responses = [response.dummy_output for response in responses if response is not None]
-
-                # Log the results.
-                bt.logging.info(f"Received dummy responses: {responses}")
-
-                # Adjust the scores based on responses from miners and update moving average.
-                for i, resp_i in enumerate(responses):
-                    current_score = 1 if resp_i == synapse.dummy_input * 2 else 0
-                    self.moving_avg_scores[i] = (1 - self.alpha) * self.moving_avg_scores[i] + self.alpha * current_score
+                # Update scores based on miner responses
+                for uid in range(len(self.metagraph.S)):
+                    miner_data = self.miner_responses[uid]
+                    if miner_data["total_requests"] > 0:
+                        current_score = miner_data["total_responses"] / miner_data["total_requests"]
+                    else:
+                        current_score = 1
+                    self.moving_avg_scores[uid] = (1 - self.alpha) * self.moving_avg_scores[uid] + self.alpha * current_score
 
                 bt.logging.info(f"Moving Average Scores: {self.moving_avg_scores}")
 
@@ -157,7 +194,13 @@ class Validator:
                 bt.logging.success("Keyboard interrupt detected. Exiting validator.")
                 exit()
 
-# Run the validator.
-if __name__ == "__main__":
+            # Sleep for a short duration before the next iteration
+            await asyncio.sleep(60)  # Sleep for 1 minute
+
+async def main():
     validator = Validator()
-    validator.run()
+    server = uvicorn.Server(uvicorn.Config(validator.app, host="0.0.0.0", port=8000))
+    await asyncio.gather(validator.run(), server.serve())
+
+if __name__ == "__main__":
+    asyncio.run(main())
