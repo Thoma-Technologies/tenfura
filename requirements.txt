@@ -1,2 +1,3 @@
 bittensor>=8
 torch>=2
+websockets>=13
