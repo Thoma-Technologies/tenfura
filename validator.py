@@ -127,7 +127,7 @@ class Validator:
         # The Main Validation Loop.
         bt.logging.info("Starting validator loop.")
 
-        uri = f"wss://app.tenfura.thoma.tech/ws"
+        uri = f"wss://app.tenfura.thoma.tech/v1/ws"
         while True:
             try:
                 async with websockets.connect(uri) as websocket:
@@ -198,14 +198,17 @@ class Validator:
                             )
 
                             self.current_block = self.node_query("System", "Number", [])
-                            self.last_update = (
-                                self.current_block
-                                - self.node_query(
-                                    "SubtensorModule",
-                                    "LastUpdate",
-                                    [self.config.netuid],
-                                )[self.my_uid]
+                            last_updates = self.node_query(
+                                "SubtensorModule",
+                                "LastUpdate",
+                                [self.config.netuid],
                             )
+                            if self.my_uid in last_updates:
+                                self.last_update = (
+                                    self.current_block - last_updates[self.my_uid]
+                                )
+                            else:
+                                self.last_update = self.tempo + 2
 
                             # set weights once every tempo + 1
                             if self.last_update > self.tempo + 1:
