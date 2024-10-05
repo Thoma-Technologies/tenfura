@@ -2,6 +2,8 @@
 
 set -e
 
+git pull
+
 # Install rust and cargo
 if [ ! -f "$HOME/.cargo/env" ]
 then
@@ -37,10 +39,21 @@ if [ -z "$CACHED_VENV" ]; then
     fi
 fi
 
+if ! command -v npm &> /dev/null
+then
+    curl -sL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+fi
+
+if ! command -v pm2 &> /dev/null
+then
+    sudo npm install pm2 -g
+fi
+
 echo "Command: '$1'"
 echo "Args: '${@:2}'"
 if [ "$1" = "validator" ]; then
-    python3 validator.py "${@:2}"
+    pm2 start validator.py -- "${@:2}"
 elif [ "$1" = "miner" ]; then
-    python3 miner.py "${@:2}"
+    pm2 start miner.py -- "${@:2}"
 fi
