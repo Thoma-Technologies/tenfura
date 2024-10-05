@@ -1,3 +1,4 @@
 __pycache__/
 .env/
 .dependencies_installed
+deploy.sh

@@ -5,6 +5,7 @@ import websockets
 import argparse
 import traceback
 import bittensor as bt
+import bittensor.utils as btu
 from substrateinterface import SubstrateInterface
 from protocol import BlockchainRequest
 from utils.uids import get_random_uids
@@ -77,7 +78,6 @@ class Validator:
     def setup_bittensor_objects(self):
         # Build Bittensor validator objects.
         bt.logging.info("Setting up Bittensor objects.")
-
         # Initialize wallet.
         self.wallet = bt.wallet(config=self.config)
         bt.logging.info(f"Wallet: {self.wallet}")
